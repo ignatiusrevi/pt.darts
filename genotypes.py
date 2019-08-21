@@ -74,6 +74,13 @@ def parse(alpha, k):
         ...
     ]
 
+    e.g. with n_nodes == 4
+    ParameterList(
+    (0): Parameter containing: [torch.cuda.FloatTensor of size 2x8 (GPU 0)]
+    (1): Parameter containing: [torch.cuda.FloatTensor of size 3x8 (GPU 0)]
+    (2): Parameter containing: [torch.cuda.FloatTensor of size 4x8 (GPU 0)]
+    (3): Parameter containing: [torch.cuda.FloatTensor of size 5x8 (GPU 0)]
+
     gene is list:
     [
         [('node1_ops_1', node_idx), ..., ('node1_ops_k', node_idx)],

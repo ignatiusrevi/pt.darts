@@ -47,7 +47,7 @@ class SearchCNN(nn.Module):
         self.cells = nn.ModuleList()
         reduction_p = False
         for i in range(n_layers):
-            # Reduce featuremap size and double channels in 1/3 and 2/3 layer.
+            # Reduce featuremap size (1/2) and double (2x) channels in 1/3 and 2/3 layer.
             if i in [n_layers//3, 2*n_layers//3]:
                 C_cur *= 2
                 reduction = True
@@ -93,6 +93,7 @@ class SearchCNNController(nn.Module):
         self.alpha_normal = nn.ParameterList()
         self.alpha_reduce = nn.ParameterList()
 
+        # for each node in a cell (identical no. for both normal and reduction cells)
         for i in range(n_nodes):
             self.alpha_normal.append(nn.Parameter(1e-3*torch.randn(i+2, n_ops)))
             self.alpha_reduce.append(nn.Parameter(1e-3*torch.randn(i+2, n_ops)))
@@ -109,9 +110,11 @@ class SearchCNNController(nn.Module):
         weights_normal = [F.softmax(alpha, dim=-1) for alpha in self.alpha_normal]
         weights_reduce = [F.softmax(alpha, dim=-1) for alpha in self.alpha_reduce]
 
+        # Single-GPU support
         if len(self.device_ids) == 1:
             return self.net(x, weights_normal, weights_reduce)
 
+        # Multi-GPU support
         # scatter x
         xs = nn.parallel.scatter(x, self.device_ids)
         # broadcast weights

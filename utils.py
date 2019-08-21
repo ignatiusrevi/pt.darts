@@ -107,8 +107,8 @@ def accuracy(output, target, topk=(1,)):
 
 
 def save_checkpoint(state, ckpt_dir, is_best=False):
-    filename = os.path.join(ckpt_dir, 'checkpoint.pth.tar')
+    filename = os.path.join(ckpt_dir, 'checkpoint.pth.tar') # overwrite checkpoint pth file
     torch.save(state, filename)
     if is_best:
         best_filename = os.path.join(ckpt_dir, 'best.pth.tar')
-        shutil.copyfile(filename, best_filename)
+        shutil.copyfile(filename, best_filename) # overwrite if best

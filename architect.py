@@ -12,7 +12,7 @@ class Architect():
             w_momentum: weights momentum
         """
         self.net = net
-        self.v_net = copy.deepcopy(net)
+        self.v_net = copy.deepcopy(net) # no reference sharing
         self.w_momentum = w_momentum
         self.w_weight_decay = w_weight_decay
 
@@ -36,7 +36,7 @@ class Architect():
         # compute gradient
         gradients = torch.autograd.grad(loss, self.net.weights())
 
-        # do virtual step (update gradient)
+        # do virtual step (update gradient) with a single training step
         # below operations do not need gradient tracking
         with torch.no_grad():
             # dict key is not the value, but the pointer. So original network weight have to
@@ -64,17 +64,18 @@ class Architect():
         # compute gradient
         v_alphas = tuple(self.v_net.alphas())
         v_weights = tuple(self.v_net.weights())
-        v_grads = torch.autograd.grad(loss, v_alphas + v_weights)
+        v_grads = torch.autograd.grad(loss, v_alphas + v_weights) # wrt both virtual alpha and virtual weight
         dalpha = v_grads[:len(v_alphas)]
         dw = v_grads[len(v_alphas):]
 
         hessian = self.compute_hessian(dw, trn_X, trn_y)
 
-        # update final gradient = dalpha - xi*hessian
+        # update final gradient = dalpha - xi*hessian -> Eq. (7) in the paper
         with torch.no_grad():
             for alpha, da, h in zip(self.net.alphas(), dalpha, hessian):
                 alpha.grad = da - xi*h
 
+    # Eq. (8)
     def compute_hessian(self, dw, trn_X, trn_y):
         """
         dw = dw` { L_val(w`, alpha) }

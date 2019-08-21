@@ -10,7 +10,7 @@ from models.search_cnn import SearchCNNController
 from architect import Architect
 from visualize import plot
 
-
+# argument parser, setup path for result, gpu =
 config = SearchConfig()
 
 device = torch.device("cuda")
@@ -31,7 +31,7 @@ def main():
 
     # set seed
     np.random.seed(config.seed)
-    torch.manual_seed(config.seed)
+    torch.manual_seed(config.seed) # cpu and cuda
     torch.cuda.manual_seed_all(config.seed)
 
     torch.backends.cudnn.benchmark = True
@@ -41,8 +41,8 @@ def main():
         config.dataset, config.data_path, cutout_length=0, validation=False)
 
     net_crit = nn.CrossEntropyLoss().to(device)
-    model = SearchCNNController(input_channels, config.init_channels, n_classes, config.layers,
-                                net_crit, device_ids=config.gpus)
+    model = SearchCNNController(C_in=input_channels, C=config.init_channels, n_classes=n_classes, n_layers=config.layers,
+                                criterion=net_crit, device_ids=config.gpus)
     model = model.to(device)
 
     # weights optimizer
@@ -123,8 +123,8 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
     model.train()
 
     for step, ((trn_X, trn_y), (val_X, val_y)) in enumerate(zip(train_loader, valid_loader)):
-        trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
-        val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
+        trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True) # train
+        val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True) # validation
         N = trn_X.size(0)
 
         # phase 2. architect step (alpha)

@@ -49,5 +49,5 @@ class SearchCell(nn.Module):
             s_cur = sum(edges[i](s, w) for i, (s, w) in enumerate(zip(states, w_list)))
             states.append(s_cur)
 
-        s_out = torch.cat(states[2:], dim=1)
+        s_out = torch.cat(states[2:], dim=1) # channel dim concatentation
         return s_out
