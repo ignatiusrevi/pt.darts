@@ -4,7 +4,6 @@ import torch.nn as nn
 import numpy as np
 import genotypes as gt
 import ops
-    
 
 class TargetedMixedOp(nn.Module):
     """ Targeted mixed operation """

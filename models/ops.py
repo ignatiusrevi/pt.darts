@@ -185,6 +185,7 @@ class MixedOp(nn.Module):
     """ Mixed operation """
     def __init__(self, C, stride, td_rate=0.90, drop_rate=0.75):
         super().__init__()
+        self.td_rate, self.drop_rate = td_rate, drop_rate
         self._ops = nn.ModuleList()
         for primitive in gt.PRIMITIVES:
             op = OPS[primitive](C, stride, affine=False)
@@ -196,12 +197,11 @@ class MixedOp(nn.Module):
             x: input
             weights: weight for each operation
         """
-        # if self.training:
-        #     _, idx  = torch.topk(weights, 1)
-        #     mask = torch.zeros_like(weights) # or torch.bernoulli(weights)
-        #     mask[idx] = 1
-        #     n_weights = weights * mask
-        # else:
-        #     n_weights = weights
-        # return sum(w * op(x) for w, op in zip(n_weights, self._ops))
+        if self.training and self.td_rate > 0. and self.drop_rate > 0.:
+            idx = int(self.td_rate * int(weights.shape[0]))
+            sorted_w, _ = torch.sort(weights)
+            threshold = sorted_w[idx]
+            mask = (weights < threshold)
+            mask = ((1. - self.drop_rate) < torch.rand(weights.shape[0])).cuda() * mask
+            weights = (1 - mask).type(torch.cuda.FloatTensor) * weights
         return sum(w * op(x) for w, op in zip(weights, self._ops))
