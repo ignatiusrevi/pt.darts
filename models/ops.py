@@ -2,7 +2,6 @@
 import torch
 import torch.nn as nn
 import genotypes as gt
-import td
 
 
 OPS = {
@@ -203,5 +202,5 @@ class MixedOp(nn.Module):
             threshold = sorted_w[idx]
             mask = (weights < threshold)
             mask = ((1. - self.drop_rate) < torch.rand(weights.shape[0])).cuda() * mask
-            weights = (1 - mask).type(torch.cuda.FloatTensor) * weights
+            weights = (~mask).type(torch.cuda.FloatTensor) * weights
         return sum(w * op(x) for w, op in zip(weights, self._ops))
