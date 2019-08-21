@@ -2,6 +2,7 @@
 import torch
 import torch.nn as nn
 import genotypes as gt
+import td
 
 
 OPS = {
@@ -182,7 +183,7 @@ class FactorizedReduce(nn.Module):
 
 class MixedOp(nn.Module):
     """ Mixed operation """
-    def __init__(self, C, stride):
+    def __init__(self, C, stride, td_rate=0.90, drop_rate=0.75):
         super().__init__()
         self._ops = nn.ModuleList()
         for primitive in gt.PRIMITIVES:
@@ -195,4 +196,12 @@ class MixedOp(nn.Module):
             x: input
             weights: weight for each operation
         """
+        # if self.training:
+        #     _, idx  = torch.topk(weights, 1)
+        #     mask = torch.zeros_like(weights) # or torch.bernoulli(weights)
+        #     mask[idx] = 1
+        #     n_weights = weights * mask
+        # else:
+        #     n_weights = weights
+        # return sum(w * op(x) for w, op in zip(n_weights, self._ops))
         return sum(w * op(x) for w, op in zip(weights, self._ops))

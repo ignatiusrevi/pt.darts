@@ -10,7 +10,7 @@ from models.search_cnn import SearchCNNController
 from architect import Architect
 from visualize import plot
 
-# argument parser, setup path for result, gpu =
+# argument parser, setup path for result, gpu device ids
 config = SearchConfig()
 
 device = torch.device("cuda")
