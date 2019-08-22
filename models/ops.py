@@ -181,6 +181,7 @@ class FactorizedReduce(nn.Module):
         out = self.bn(out)
         return out
 
+
 class ResBlock(nn.Module):
     expansion = 1
 
@@ -206,6 +207,7 @@ class ResBlock(nn.Module):
         out = F.relu(out)
         return out
 
+
 class MixedOp(nn.Module):
     """ Mixed operation """
     def __init__(self, C, stride, td_rate=0.90, drop_rate=0.75):
@@ -222,11 +224,14 @@ class MixedOp(nn.Module):
             x: input
             weights: weight for each operation
         """
-        # if self.training and self.td_rate > 0. and self.drop_rate > 0.:
-        #     idx = int(self.td_rate * int(weights.shape[0]))
-        #     sorted_w, _ = torch.sort(weights)
-        #     threshold = sorted_w[idx]
-        #     mask = (weights < threshold)
-        #     mask = ((1. - self.drop_rate) < torch.rand(weights.shape[0])).cuda() * mask
-        #     weights = (~mask).type(torch.cuda.FloatTensor) * weights
+        norm        = torch.abs(weights)
+        idx         = int(self.td_rate * int(weights.shape[0]))
+        sorted_w, _ = torch.sort(norm)
+        threshold   = sorted_w[idx]
+        mask        = (weights < threshold)
+
+        if self.training and self.td_rate > 0. and self.drop_rate > 0.:
+            mask = ((1. - self.drop_rate) < torch.rand(weights.shape[0])).cuda() * mask
+        weights = (~mask).type(torch.cuda.FloatTensor) * weights
+
         return sum(w * op(x) for w, op in zip(weights, self._ops))

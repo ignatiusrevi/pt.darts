@@ -31,6 +31,11 @@ python augment.py --name cifar10 --dataset cifar10 --genotype "Genotype(
     reduce=[[('max_pool_3x3', 0), ('max_pool_3x3', 1)], [('max_pool_3x3', 0), ('skip_connect', 2)], [('skip_connect', 3), ('max_pool_3x3', 0)], [('skip_connect', 2), ('max_pool_3x3', 0)]],
     reduce_concat=range(2, 6)
 )"
+
+python augment.py --name cifar10 --dataset cifar10 --gpus 3 --genotype "Genotype(
+    normal=[[('sep_conv_3x3', 0), ('sep_conv_5x5', 1)], [('max_pool_3x3', 0), ('skip_connect', 2)], [('max_pool_3x3', 0), ('skip_connect', 2)], [('dil_conv_3x3', 0), ('skip_connect', 1)]], normal_concat=range(2, 6), 
+    reduce=[[('avg_pool_3x3', 0), ('sep_conv_3x3', 1)], [('max_pool_3x3', 0), ('sep_conv_3x3', 1)], [('sep_conv_5x5', 0), ('max_pool_3x3', 1)], [('max_pool_3x3', 1), ('sep_conv_3x3', 0)]], reduce_concat=range(2, 6)
+)"
 ```
 
 - with docker

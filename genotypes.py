@@ -19,7 +19,7 @@ PRIMITIVES = [
     'sep_conv_5x5',
     'dil_conv_3x3',
     'dil_conv_5x5',
-    'res_blck_3x3',
+    # 'res_blck_3x3',
     'none'
 ]
 
