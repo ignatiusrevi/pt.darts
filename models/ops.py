@@ -210,8 +210,9 @@ class ResBlock(nn.Module):
 
 class MixedOp(nn.Module):
     """ Mixed operation """
-    def __init__(self, C, stride, td_rate=0.90, drop_rate=0.75):
+    def __init__(self, C, stride, td_choice='unit', td_rate=0.90, drop_rate=0.75):
         super().__init__()
+        self.td_choice = td_choice
         self.td_rate, self.drop_rate = td_rate, drop_rate
         self._ops = nn.ModuleList()
         for primitive in gt.PRIMITIVES:
@@ -220,6 +221,24 @@ class MixedOp(nn.Module):
 
     def forward(self, x, weights):
         """
+        Args:
+            x: input
+            weights: weight for each operation
+        """
+
+        if self.td_choice == 'unit':
+            weights = self.targeted_weight_dropout(x, weights)
+        elif self.td_choice == 'weight':
+            x = self.targeted_unit_dropout(x, weights)
+        else:
+            raise ValueError("Targeted Dropout must be either 'unit' or 'weight'")
+
+        return sum(w * op(x) for w, op in zip(weights, self._ops))
+
+
+    def targeted_weight_dropout(self, x, weights):
+        """
+        Implementation of mixedop targeted weight dropout
         Args:
             x: input
             weights: weight for each operation
@@ -234,4 +253,27 @@ class MixedOp(nn.Module):
             mask = ((1. - self.drop_rate) < torch.rand(weights.shape[0])).cuda() * mask
         weights = (~mask).type(torch.cuda.FloatTensor) * weights
 
-        return sum(w * op(x) for w, op in zip(weights, self._ops))
+        return weights
+
+
+    def targeted_unit_dropout(self, x, weights):
+        """
+        Implementation of mixedop targeted unit dropout
+        Args:
+            x: input
+            weights: weight for each operation
+        """
+        re_x = x.view(-1, x.shape[-1]) # wrt columns
+        norm = torch.norm(re_x, dim=0)
+        idx  = int(self.td_rate * int(re_x.shape[1]))
+
+        sorted_norms, _ = torch.sort(norm)
+        threshold       = sorted_norms[idx]
+
+        mask = (norm < threshold)
+        mask = mask.expand([re_x.shape[0], -1])
+        mask = ((1. - self.drop_rate) < torch.rand(re_x.shape)).cuda() * mask
+
+        x = ((~mask).type(torch.cuda.FloatTensor) * re_x).view(x.shape)
+
+        return x
