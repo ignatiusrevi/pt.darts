@@ -263,17 +263,15 @@ class MixedOp(nn.Module):
             x: input
             weights: weight for each operation
         """
-        re_x = x.view(-1, x.shape[-1]) # wrt columns
-        norm = torch.norm(re_x, dim=0)
-        idx  = int(self.td_rate * int(re_x.shape[1]))
-
+        re_x            = x.view(-1, x.shape[-1]) # wrt columns
+        norm            = torch.norm(re_x, dim=0)
+        idx             = int(self.td_rate * int(re_x.shape[1]))
         sorted_norms, _ = torch.sort(norm)
         threshold       = sorted_norms[idx]
+        mask            = (norm < threshold).expand([re_x.shape[0], -1])
 
-        mask = (norm < threshold)
-        mask = mask.expand([re_x.shape[0], -1])
-        mask = ((1. - self.drop_rate) < torch.rand(re_x.shape)).cuda() * mask
-
+        if self.training and self.td_rate > 0. and self.drop_rate > 0.:
+            mask = ((1. - self.drop_rate) < torch.rand(re_x.shape)).cuda() * mask
         x = ((~mask).type(torch.cuda.FloatTensor) * re_x).view(x.shape)
 
         return x
