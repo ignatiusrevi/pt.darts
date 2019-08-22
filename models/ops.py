@@ -2,6 +2,7 @@
 import torch
 import torch.nn as nn
 import genotypes as gt
+import torch.nn.functional as F
 
 
 OPS = {
@@ -15,7 +16,8 @@ OPS = {
     'sep_conv_7x7': lambda C, stride, affine: SepConv(C, C, 7, stride, 3, affine=affine),
     'dil_conv_3x3': lambda C, stride, affine: DilConv(C, C, 3, stride, 2, 2, affine=affine), # 5x5
     'dil_conv_5x5': lambda C, stride, affine: DilConv(C, C, 5, stride, 4, 2, affine=affine), # 9x9
-    'conv_7x1_1x7': lambda C, stride, affine: FacConv(C, C, 7, stride, 3, affine=affine)
+    'conv_7x1_1x7': lambda C, stride, affine: FacConv(C, C, 7, stride, 3, affine=affine),
+    'res_blck_3x3': lambda C, stride, affine: ResBlock(C, C, stride, affine=affine)
 }
 
 
@@ -179,6 +181,30 @@ class FactorizedReduce(nn.Module):
         out = self.bn(out)
         return out
 
+class ResBlock(nn.Module):
+    expansion = 1
+
+    def __init__(self, C_in, C_out, stride=1, affine=True):
+        super(ResBlock, self).__init__()
+
+        self.conv1 = nn.Conv2d(C_in, C_out, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn1   = nn.BatchNorm2d(C_out, affine=affine)
+        self.conv2 = nn.Conv2d(C_out, C_out, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2   = nn.BatchNorm2d(C_out, affine=affine)
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or C_in != self.expansion*C_out:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(C_in, self.expansion*C_out, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(self.expansion*C_out, affine=affine)
+            )
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out += self.shortcut(x)
+        out = F.relu(out)
+        return out
 
 class MixedOp(nn.Module):
     """ Mixed operation """
@@ -196,11 +222,11 @@ class MixedOp(nn.Module):
             x: input
             weights: weight for each operation
         """
-        if self.training and self.td_rate > 0. and self.drop_rate > 0.:
-            idx = int(self.td_rate * int(weights.shape[0]))
-            sorted_w, _ = torch.sort(weights)
-            threshold = sorted_w[idx]
-            mask = (weights < threshold)
-            mask = ((1. - self.drop_rate) < torch.rand(weights.shape[0])).cuda() * mask
-            weights = (~mask).type(torch.cuda.FloatTensor) * weights
+        # if self.training and self.td_rate > 0. and self.drop_rate > 0.:
+        #     idx = int(self.td_rate * int(weights.shape[0]))
+        #     sorted_w, _ = torch.sort(weights)
+        #     threshold = sorted_w[idx]
+        #     mask = (weights < threshold)
+        #     mask = ((1. - self.drop_rate) < torch.rand(weights.shape[0])).cuda() * mask
+        #     weights = (~mask).type(torch.cuda.FloatTensor) * weights
         return sum(w * op(x) for w, op in zip(weights, self._ops))
