@@ -210,9 +210,11 @@ class ResBlock(nn.Module):
 
 class MixedOp(nn.Module):
     """ Mixed operation """
-    def __init__(self, C, stride, td_choice='unit', td_rate=0.90, drop_rate=0.75):
+    def __init__(self, C, stride, td_choice='weight', td_rate=0.90, drop_rate=0.75):
         super().__init__()
         self.td_choice = td_choice
+        if td_choice == 'unit':
+            self.td_rate, self.drop_rate = 0.75, 0.90
         self.td_rate, self.drop_rate = td_rate, drop_rate
         self._ops = nn.ModuleList()
         for primitive in gt.PRIMITIVES:
