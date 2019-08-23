@@ -215,7 +215,8 @@ class MixedOp(nn.Module):
         self.td_choice = td_choice
         if td_choice == 'unit':
             self.td_rate, self.drop_rate = 0.75, 0.90
-        self.td_rate, self.drop_rate = td_rate, drop_rate
+        else: 
+            self.td_rate, self.drop_rate = td_rate, drop_rate
         self._ops = nn.ModuleList()
         for primitive in gt.PRIMITIVES:
             op = OPS[primitive](C, stride, affine=False)
