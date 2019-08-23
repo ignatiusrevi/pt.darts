@@ -32,9 +32,15 @@ python augment.py --name cifar10 --dataset cifar10 --genotype "Genotype(
     reduce_concat=range(2, 6)
 )"
 
+# 08/23 02:36:43 PM | Final best Prec@1 = 97.3000%
 python augment.py --name cifar10 --dataset cifar10 --gpus 3 --genotype "Genotype(
     normal=[[('sep_conv_3x3', 0), ('sep_conv_5x5', 1)], [('max_pool_3x3', 0), ('skip_connect', 2)], [('max_pool_3x3', 0), ('skip_connect', 2)], [('dil_conv_3x3', 0), ('skip_connect', 1)]], normal_concat=range(2, 6), 
     reduce=[[('avg_pool_3x3', 0), ('sep_conv_3x3', 1)], [('max_pool_3x3', 0), ('sep_conv_3x3', 1)], [('sep_conv_5x5', 0), ('max_pool_3x3', 1)], [('max_pool_3x3', 1), ('sep_conv_3x3', 0)]], reduce_concat=range(2, 6)
+)"
+
+python augment.py --name cifar10_td_fix_not_training_condition --dataset cifar10 --gpus 1 --genotype "Genotype(
+    normal=[[('max_pool_3x3', 0), ('sep_conv_5x5', 1)], [('max_pool_3x3', 0), ('skip_connect', 2)], [('dil_conv_3x3', 1), ('skip_connect', 2)], [('max_pool_3x3', 1), ('dil_conv_3x3', 0)]], normal_concat=range(2, 6), 
+    reduce=[[('dil_conv_5x5', 0), ('dil_conv_3x3', 1)], [('skip_connect', 0), ('sep_conv_5x5', 1)], [('dil_conv_5x5', 2), ('sep_conv_5x5', 0)], [('avg_pool_3x3', 0), ('dil_conv_3x3', 1)]], reduce_concat=range(2, 6)
 )"
 ```
 

@@ -227,9 +227,9 @@ class MixedOp(nn.Module):
         """
 
         if self.td_choice == 'unit':
-            weights = self.targeted_weight_dropout(x, weights)
-        elif self.td_choice == 'weight':
             x = self.targeted_unit_dropout(x, weights)
+        elif self.td_choice == 'weight':
+            weights = self.targeted_weight_dropout(x, weights)
         else:
             raise ValueError("Targeted Dropout must be either 'unit' or 'weight'")
 
