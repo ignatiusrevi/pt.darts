@@ -1,5 +1,6 @@
 """ Search cell """
 import os
+import time
 import torch
 import torch.nn as nn
 import numpy as np
@@ -198,4 +199,8 @@ def validate(valid_loader, model, epoch, cur_step):
 
 
 if __name__ == "__main__":
+    start_time = time.time()
     main()
+    end_time = time.time()
+    duration = end_time - start_time
+    logger.info("Total Search Time: %ds", duration)
