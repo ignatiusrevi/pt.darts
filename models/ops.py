@@ -3,7 +3,6 @@ import torch
 import torch.nn as nn
 import genotypes as gt
 import torch.nn.functional as F
-from IPython.core.debugger import set_trace
 
 
 OPS = {
@@ -32,6 +31,13 @@ def channel_shuffle(x, groups):
 
     # flatten
     x = x.view(batch_size, -1, height, width)
+
+    return x
+
+def random_shuffle(x):
+    batch_size, num_channels, height, width = x.data.size()
+    indices = torch.randperm(num_channels)
+    x = x[:,indices]
 
 def drop_path_(x, drop_prob, training):
     if training and drop_prob > 0.:
@@ -245,6 +251,8 @@ class MixedOp(nn.Module):
             x: input
             weights: weight for each operation
         """
+        # random_shuffle(x)
+        
         channel = x.shape[1]
         x_temp_1 = x[ :, :channel//self.C_reduction, :, :]
         x_temp_2 = x[ :, channel//self.C_reduction:, :, :]
@@ -256,15 +264,13 @@ class MixedOp(nn.Module):
         else:
             raise ValueError("Targeted Dropout must be either 'unit' or 'weight'")
 
-        sum_temp_1 = sum(w * op(x) for w, op in zip(weights, self._ops))
+        sum_temp_1 = sum(w * op(x_temp_1) for w, op in zip(weights, self._ops))
 
-        set_trace()
         # reduction cell needs pooling before concat
         if sum_temp_1.shape[2] == x.shape[2]:
-            result = torch.cat([x_temp_1, x_temp_2], dim=1)
+            result = torch.cat([sum_temp_1, x_temp_2], dim=1)
         else:
-            result = torch.cat([x_temp_1, self.max_pool(x_temp_2)], dim=1)
-
+            result = torch.cat([sum_temp_1, self.max_pool(x_temp_2)], dim=1)
         result = channel_shuffle(result, self.C_reduction)
 
         return result

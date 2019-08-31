@@ -6,7 +6,6 @@ from models.search_cells import SearchCell
 import genotypes as gt
 from torch.nn.parallel._functions import Broadcast
 import logging
-from IPython.core.debugger import set_trace
 
 
 def broadcast_list(l, device_ids):
@@ -34,6 +33,7 @@ class SearchCNN(nn.Module):
         self.C = C
         self.n_classes = n_classes
         self.n_layers = n_layers
+        self.n_nodes = n_nodes
 
         C_cur = stem_multiplier * C
         self.stem = nn.Sequential(
@@ -72,23 +72,29 @@ class SearchCNN(nn.Module):
             if cell.reduction:
                 weights = weights_reduce
                 n, start = 3, 2
-                beta_weights = F.softmax(beta_reduce[0:2], dim=-1)
+                # beta_weights = F.softmax(beta_reduce[0:2], dim=-1)
+                beta_weights = [F.softmax(beta, dim=-1) for beta in beta_reduce[0:2]]
                 for i in range(self.n_nodes-1):
                     end = start + n
-                    tw2 = F.softmax(beta_reduce[start:end], dim=-1)
+                    # tw2 = F.softmax(beta_reduce[start:end], dim=-1)
+                    tw2 = [F.softmax(beta, dim=-1) for beta in beta_reduce[start:end]]
                     start = end
                     n += 1
-                    beta_weights = torch.cat([beta_weights, tw2], dim=0)
+                    # beta_weights = torch.cat([beta_weights, tw2], dim=0)
+                    beta_weights = beta_weights + tw2
             else:
                 weights = weights_normal
                 n, start = 3, 2
-                beta_weights = F.softmax(beta_normal[0:2], dim=-1)
+                # beta_weights = F.softmax(beta_normal[0:2], dim=-1)
+                beta_weights = [F.softmax(beta, dim=-1) for beta in beta_normal[0:2]]
                 for i in range(self.n_nodes-1):
                     end = start + n
-                    tw2 = F.softmax(beta_normal[start:end], dim=-1)
+                    # tw2 = F.softmax(beta_normal[start:end], dim=-1)
+                    tw2 = [F.softmax(beta, dim=-1) for beta in beta_normal[start:end]]
                     start = end
                     n += 1
-                    beta_weights = torch.cat([beta_weights, tw2], dim=0)
+                    # beta_weights = torch.cat([beta_weights, tw2], dim=0)
+                    beta_weights = beta_weights + tw2
             s0, s1 = s1, cell(s0, s1, weights, beta_weights)
         out = self.gap(s1)
         out = out.view(out.size(0), -1) # flatten
@@ -113,10 +119,8 @@ class SearchCNNController(nn.Module):
         self.alpha_normal = nn.ParameterList()
         self.alpha_reduce = nn.ParameterList()
         # PC-channel reduction - beta parameters
-        self.betas_normal = nn.ParameterList()
-        self.betas_reduce = nn.ParameterList()
-
-        set_trace()
+        self.beta_normal = nn.ParameterList()
+        self.beta_reduce = nn.ParameterList()
 
         # for each node in a cell (identical no. for both normal and reduction cells)
         for i in range(n_nodes):

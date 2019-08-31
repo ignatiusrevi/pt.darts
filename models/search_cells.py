@@ -2,7 +2,6 @@
 import torch
 import torch.nn as nn
 from models import ops
-from IPython.core.debugger import set_trace
 
 
 class SearchCell(nn.Module):
@@ -45,11 +44,9 @@ class SearchCell(nn.Module):
         s0 = self.preproc0(s0)
         s1 = self.preproc1(s1)
 
-        set_trace()
-
         states = [s0, s1]
-        for edges, w_list in zip(self.dag, w_dag):
-            s_cur = sum(b*edges[i](s, w) for i, (s, b, w) in enumerate(zip(states, beta_weights, w_list)))
+        for edges, w_list, b_list in zip(self.dag, w_dag, beta_weights):
+            s_cur = sum(b*edges[i](s, w) for i, (s, w, b) in enumerate(zip(states, w_list, b_list)))
             states.append(s_cur)
 
         s_out = torch.cat(states[2:], dim=1) # channel dim concatentation
