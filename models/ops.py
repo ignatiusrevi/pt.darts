@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import genotypes as gt
 import torch.nn.functional as F
+from IPython.core.debugger import set_trace
 
 
 OPS = {
@@ -20,6 +21,17 @@ OPS = {
     'res_blck_3x3': lambda C, stride, affine: ResBlock(C, C, stride, affine=affine)
 }
 
+
+def channel_shuffle(x, groups):
+    batch_size, num_channels, height, width = x.data.size()
+    channels_per_group = num_channels // groups
+
+    # reshape
+    x = x.view(batch_size, groups, channels_per_group, height, width)
+    x = torch.transpose(x, 1, 2).contiguous()
+
+    # flatten
+    x = x.view(batch_size, -1, height, width)
 
 def drop_path_(x, drop_prob, training):
     if training and drop_prob > 0.:
@@ -210,16 +222,21 @@ class ResBlock(nn.Module):
 
 class MixedOp(nn.Module):
     """ Mixed operation """
-    def __init__(self, C, stride, td_choice='weight', td_rate=0.90, drop_rate=0.75):
+    def __init__(self, C, stride, td_choice='weight', td_rate=0.50, drop_rate=0.50, C_reduction=4):
         super().__init__()
-        self.td_choice = td_choice
+        self.td_choice   = td_choice
+        self.C_reduction = C_reduction
+        self.max_pool    = nn.MaxPool2d(2,2)
+
         if td_choice == 'unit':
-            self.td_rate, self.drop_rate = 0.75, 0.90
+            self.td_rate, self.drop_rate = 0.75, 0.90 # default td unit
         else: 
             self.td_rate, self.drop_rate = td_rate, drop_rate
         self._ops = nn.ModuleList()
         for primitive in gt.PRIMITIVES:
-            op = OPS[primitive](C, stride, affine=False)
+            op = OPS[primitive](C // C_reduction, stride, affine=False) # PC-channel reduction
+            # if 'pool' in primitive:
+            #     op = nn.Sequential(op, nn.BatchNorm2d(C // C_reduction, affine=False))
             self._ops.append(op)
 
     def forward(self, x, weights):
@@ -228,6 +245,9 @@ class MixedOp(nn.Module):
             x: input
             weights: weight for each operation
         """
+        channel = x.shape[1]
+        x_temp_1 = x[ :, :channel//self.C_reduction, :, :]
+        x_temp_2 = x[ :, channel//self.C_reduction:, :, :]
 
         if self.td_choice == 'unit':
             x = self.targeted_unit_dropout(x, weights)
@@ -236,7 +256,18 @@ class MixedOp(nn.Module):
         else:
             raise ValueError("Targeted Dropout must be either 'unit' or 'weight'")
 
-        return sum(w * op(x) for w, op in zip(weights, self._ops))
+        sum_temp_1 = sum(w * op(x) for w, op in zip(weights, self._ops))
+
+        set_trace()
+        # reduction cell needs pooling before concat
+        if sum_temp_1.shape[2] == x.shape[2]:
+            result = torch.cat([x_temp_1, x_temp_2], dim=1)
+        else:
+            result = torch.cat([x_temp_1, self.max_pool(x_temp_2)], dim=1)
+
+        result = channel_shuffle(result, self.C_reduction)
+
+        return result
 
 
     def targeted_weight_dropout(self, x, weights):

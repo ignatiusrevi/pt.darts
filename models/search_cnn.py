@@ -6,6 +6,7 @@ from models.search_cells import SearchCell
 import genotypes as gt
 from torch.nn.parallel._functions import Broadcast
 import logging
+from IPython.core.debugger import set_trace
 
 
 def broadcast_list(l, device_ids):
@@ -63,13 +64,32 @@ class SearchCNN(nn.Module):
         self.gap = nn.AdaptiveAvgPool2d(1)
         self.linear = nn.Linear(C_p, n_classes)
 
-    def forward(self, x, weights_normal, weights_reduce):
+    def forward(self, x, weights_normal, weights_reduce, beta_normal, beta_reduce):
         s0 = s1 = self.stem(x)
 
         for cell in self.cells:
-            weights = weights_reduce if cell.reduction else weights_normal
-            s0, s1 = s1, cell(s0, s1, weights)
-
+            # weights = weights_reduce if cell.reduction else weights_normal
+            if cell.reduction:
+                weights = weights_reduce
+                n, start = 3, 2
+                beta_weights = F.softmax(beta_reduce[0:2], dim=-1)
+                for i in range(self.n_nodes-1):
+                    end = start + n
+                    tw2 = F.softmax(beta_reduce[start:end], dim=-1)
+                    start = end
+                    n += 1
+                    beta_weights = torch.cat([beta_weights, tw2], dim=0)
+            else:
+                weights = weights_normal
+                n, start = 3, 2
+                beta_weights = F.softmax(beta_normal[0:2], dim=-1)
+                for i in range(self.n_nodes-1):
+                    end = start + n
+                    tw2 = F.softmax(beta_normal[start:end], dim=-1)
+                    start = end
+                    n += 1
+                    beta_weights = torch.cat([beta_weights, tw2], dim=0)
+            s0, s1 = s1, cell(s0, s1, weights, beta_weights)
         out = self.gap(s1)
         out = out.view(out.size(0), -1) # flatten
         logits = self.linear(out)
@@ -92,11 +112,19 @@ class SearchCNNController(nn.Module):
 
         self.alpha_normal = nn.ParameterList()
         self.alpha_reduce = nn.ParameterList()
+        # PC-channel reduction - beta parameters
+        self.betas_normal = nn.ParameterList()
+        self.betas_reduce = nn.ParameterList()
+
+        set_trace()
 
         # for each node in a cell (identical no. for both normal and reduction cells)
         for i in range(n_nodes):
             self.alpha_normal.append(nn.Parameter(1e-3*torch.randn(i+2, n_ops)))
             self.alpha_reduce.append(nn.Parameter(1e-3*torch.randn(i+2, n_ops)))
+            # PC-channel reduction - beta parameters
+            self.beta_normal.append(nn.Parameter(1e-3*torch.randn(i+2)))
+            self.beta_reduce.append(nn.Parameter(1e-3*torch.randn(i+2)))
 
         # setup alphas list
         self._alphas = []
@@ -112,7 +140,7 @@ class SearchCNNController(nn.Module):
 
         # Single-GPU support
         if len(self.device_ids) == 1:
-            return self.net(x, weights_normal, weights_reduce)
+            return self.net(x, weights_normal, weights_reduce, self.beta_normal, self.beta_reduce)
 
         # Multi-GPU support
         # scatter x
@@ -147,6 +175,27 @@ class SearchCNNController(nn.Module):
         logger.info("\n# Alpha - reduce")
         for alpha in self.alpha_reduce:
             logger.info(F.softmax(alpha, dim=-1))
+        logger.info("#####################")
+
+        # restore formats
+        for handler, formatter in zip(logger.handlers, org_formatters):
+            handler.setFormatter(formatter)
+    
+    def print_beta(self, logger):
+        # remove formats
+        org_formatters = []
+        for handler in logger.handlers:
+            org_formatters.append(handler.formatter)
+            handler.setFormatter(logging.Formatter("%(message)s"))
+
+        logger.info("####### BETA #######")
+        logger.info("# Beta - normal")
+        for beta in self.beta_normal:
+            logger.info(F.softmax(beta, dim=-1))
+
+        logger.info("\n# Beta - reduce")
+        for beta in self.beta_reduce:
+            logger.info(F.softmax(beta, dim=-1))
         logger.info("#####################")
 
         # restore formats
