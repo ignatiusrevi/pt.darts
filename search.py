@@ -80,6 +80,7 @@ def main():
         lr = lr_scheduler.get_lr()[0]
 
         model.print_alphas(logger)
+        model.print_beta(logger)
 
         # training
         train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch)
@@ -129,9 +130,10 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         N = trn_X.size(0)
 
         # phase 2. architect step (alpha)
-        alpha_optim.zero_grad()
-        architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim)
-        alpha_optim.step()
+        if epoch >= 15:
+            alpha_optim.zero_grad()
+            architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim)
+            alpha_optim.step()
 
         # phase 1. child network step (w)
         w_optim.zero_grad()
