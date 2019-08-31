@@ -207,8 +207,22 @@ class SearchCNNController(nn.Module):
             handler.setFormatter(formatter)
 
     def genotype(self):
-        gene_normal = gt.parse(self.alpha_normal, k=2)
-        gene_reduce = gt.parse(self.alpha_reduce, k=2)
+        n, start = 3, 2
+        weightsr2 = [F.softmax(beta, dim=-1) for beta in self.beta_reduce[0:2]]
+        weightsn2 = [F.softmax(beta, dim=-1) for beta in self.beta_normal[0:2]]
+
+        for i in range(self.n_nodes):
+            end = start + n
+            tw2 = [F.softmax(beta, dim=-1) for beta in self.beta_reduce[start:end]]
+            tn2 = [F.softmax(beta, dim=-1) for beta in self.beta_normal[start:end]]
+            start = end
+            n += 1
+            weightsr2 = weightsr2 + tw2
+            weightsn2 = weightsn2 + tn2
+
+        # normalize edge-leve beta parameters
+        gene_normal = gt.parse(self.alpha_normal, weightsr2, k=2)
+        gene_reduce = gt.parse(self.alpha_reduce, weightsn2, k=2)
         concat = range(2, 2+self.n_nodes) # concat all intermediate nodes
 
         return gt.Genotype(normal=gene_normal, normal_concat=concat,

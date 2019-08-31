@@ -7,6 +7,7 @@ from collections import namedtuple
 import torch
 import torch.nn as nn
 from models import ops
+from IPython.core.debugger import set_trace
 
 
 Genotype = namedtuple('Genotype', 'normal normal_concat reduce reduce_concat')
@@ -65,7 +66,7 @@ def from_str(s):
     return genotype
 
 
-def parse(alpha, k):
+def parse(alpha, beta, k):
     """
     parse continuous alpha to discrete gene.
     alpha is ParameterList:
@@ -96,8 +97,10 @@ def parse(alpha, k):
 
     # 1) Convert the mixed op to discrete edge (single op) by choosing top-1 weight edge
     # 2) Choose top-k edges per node by edge score (top-1 weight in edge)
-    for edges in alpha:
-        # edges: Tensor(n_edges, n_ops)
+    for edges, b in zip(alpha, beta):
+        # edges: Tensor(n_edges, n_ops), b: Tensor(n_edges)
+        b = b.view(-1, 1).expand_as(edges)
+        edges = edges * b
         edge_max, primitive_indices = torch.topk(edges[:, :-1], 1) # ignore 'none'
         topk_edge_values, topk_edge_indices = torch.topk(edge_max.view(-1), k)
         node_gene = []
