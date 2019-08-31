@@ -7,7 +7,6 @@ from collections import namedtuple
 import torch
 import torch.nn as nn
 from models import ops
-from IPython.core.debugger import set_trace
 
 
 Genotype = namedtuple('Genotype', 'normal normal_concat reduce reduce_concat')
