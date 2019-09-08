@@ -62,6 +62,20 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--alpha_lr', type=float, default=3e-4, help='lr for alpha')
         parser.add_argument('--alpha_weight_decay', type=float, default=1e-3,
                             help='weight decay for alpha')
+        
+        parser.add_argument('--freeze_epoch', type=int, default=15, help='number of epochs to freeze arch paramter updates')
+
+        # ## APEX - Mixed Precision Training
+        # parser.add_argument('--opt_level', type=str, default='O2', help='')
+        # parser.add_argument('--keep_batchnorm_fp32', type=bool, default=None, help='')
+        # parser.add_argument('--loss_scale', type=str, default='', help='')
+
+        # ## PDARTS
+        # parser.add_argument('--add_width', action='append',    default=['0'], help='number of additional channels')
+        # parser.add_argument('--add_layers', action='append',   default=['0'], help='number of additional layers')
+        # parser.add_argument('--dropout_rate', action='append', default=['0'], help='dropout rate of skip connect')
+        # parser.add_argument('--num_to_keep', action='append',  default=['5', '3', '1'], help='list of ops number to keep')
+        # parser.add_argument('--num_to_drop', action='append',  default=['3', '2', '2'], help='list of ops number to drop')
 
         return parser
 

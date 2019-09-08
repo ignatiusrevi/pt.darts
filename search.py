@@ -130,7 +130,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         N = trn_X.size(0)
 
         # phase 2. architect step (alpha, beta)
-        if epoch >= 15:
+        if epoch >= config.freeze_epoch:
             alpha_optim.zero_grad()
             architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim)
             alpha_optim.step()
