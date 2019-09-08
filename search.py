@@ -129,7 +129,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True) # validation
         N = trn_X.size(0)
 
-        # phase 2. architect step (alpha)
+        # phase 2. architect step (alpha, beta)
         if epoch >= 15:
             alpha_optim.zero_grad()
             architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim)

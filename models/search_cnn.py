@@ -113,7 +113,7 @@ class SearchCNNController(nn.Module):
             device_ids = list(range(torch.cuda.device_count()))
         self.device_ids = device_ids
 
-        # initialize architect parameters: alphas
+        # initialize architect parameters: alphas, betas
         n_ops = len(gt.PRIMITIVES)
 
         self.alpha_normal = nn.ParameterList()
@@ -130,10 +130,10 @@ class SearchCNNController(nn.Module):
             self.beta_normal.append(nn.Parameter(1e-3*torch.randn(i+2)))
             self.beta_reduce.append(nn.Parameter(1e-3*torch.randn(i+2)))
 
-        # setup alphas list
+        # setup alphas, betas list
         self._alphas = []
         for n, p in self.named_parameters():
-            if 'alpha' in n:
+            if 'alpha' in n or 'beta' in n:
                 self._alphas.append((n, p))
 
         self.net = SearchCNN(C_in, C, n_classes, n_layers, n_nodes, stem_multiplier)
