@@ -221,8 +221,8 @@ class SearchCNNController(nn.Module):
             weightsn2 = weightsn2 + tn2
 
         # normalize edge-leve beta parameters
-        gene_normal = gt.parse(self.alpha_normal, weightsr2, k=2)
-        gene_reduce = gt.parse(self.alpha_reduce, weightsn2, k=2)
+        gene_normal = gt.parse(self.alpha_normal, weightsn2, k=2)
+        gene_reduce = gt.parse(self.alpha_reduce, weightsr2, k=2)
         concat = range(2, 2+self.n_nodes) # concat all intermediate nodes
 
         return gt.Genotype(normal=gene_normal, normal_concat=concat,
