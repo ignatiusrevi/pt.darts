@@ -56,15 +56,16 @@ def main():
         lcka_arr   = {}
         rbfcka_arr = {}
         lcka_arr_debiased = {}
-        cca_arr = {}
+        cca_arr    = {}
 
         assert len(sout) == len(cout) == 8, "Invalid Length"
 
         for i, s in enumerate(sout):
+            print('Itr:', i)
             lcka_tmp   = {}
             rbfcka_tmp = {}
             lcka_tmp_debiased = {}
-            cca_tmp = {}
+            cca_tmp    = {}
             for j, c in enumerate(cout):
                 if s.shape == c.shape:
                     # Linear CKA
@@ -77,22 +78,22 @@ def main():
                     lcka_debiased = cka.feature_space_linear_cka(s, c, debiased=True)
                     lcka_tmp_debiased[(i,j)] = lcka_debiased
                     # CCA
-                    cca = cca.cca(s, c)
-                    cca_tmp[(i,j)] = cca
+                    rcca = cca.cca(s, c)
+                    cca_tmp[(i,j)] = rcca
             lcka_arr[i]   = lcka_tmp
             rbfcka_arr[i] = rbfcka_tmp
             lcka_arr_debiased[i] = lcka_tmp_debiased
-            cca_arr[i] = cca_tmp
+            cca_arr[i]    = cca_tmp
 
     # lcka_arr: [0.8647181751790686, 0.8420941606313009, 0.7348263199116554, 0.6825569398218329, 0.6052602758501613, 0.6565296056176754, 0.5687178121624982, 0.32996000264800635]
 
-    print('LCKA_ARR: ',   lcka_arr)
+    print('Linear CKA: ', lcka_arr)
     print()
-    print('RBFCKA_ARR: ', rbfcka_arr)
+    print('RBF CKA: ', rbfcka_arr)
     print()
-    print('LCKA_ARR_DEBIASED: ', lcka_arr_debiased)
+    print('Linear CKA Debiased: ', lcka_arr_debiased)
     print()
-    print('CCA_ARR: ', cca_arr)
+    print('CCA: ', cca_arr)
 
 if __name__ == "__main__":
     start_time = time.time()
