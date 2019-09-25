@@ -289,8 +289,8 @@ class MixedOpCKA(nn.Module):
             sorted_w, _ = torch.sort(norm)
             threshold   = sorted_w[idx]
             mask        = (weights < threshold)
-            mask        = ((1. - self.drop_rate) < torch.rand(weights.shape[0])) * mask
-            weights     = (~mask).type(torch.FloatTensor) * weights
+            mask        = ((1. - self.drop_rate) < torch.rand(weights.shape[0])).cuda() * mask
+            weights     = (~mask).type(torch.cuda.FloatTensor) * weights
 
         return weights
 
@@ -310,7 +310,7 @@ class MixedOpCKA(nn.Module):
             threshold       = sorted_norms[idx]
             mask            = (norm < threshold).expand([re_x.shape[0], -1])
 
-            mask = ((1. - self.drop_rate) < torch.rand(re_x.shape)) * mask
-            x = ((~mask).type(torch.FloatTensor) * re_x).view(x.shape)
+            mask = ((1. - self.drop_rate) < torch.rand(re_x.shape)).cuda() * mask
+            x = ((~mask).type(torch.cuda.FloatTensor) * re_x).view(x.shape)
 
         return x
