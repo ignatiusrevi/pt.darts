@@ -127,4 +127,4 @@ if __name__ == "__main__":
     main()
     end_time = time.time()
     duration = end_time - start_time
-    print("Total Evaluation Time: %ds", duration)
+    print("Total Evaluation Time: %ds" % duration)
