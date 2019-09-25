@@ -113,8 +113,8 @@ def feature_space_linear_cka(features_x, features_y, debiased=False):
     Returns:
         The value of CKA between X and Y.
     """
-    features_x = features_x - np.mean(features_x, 0, keepdims=True)
-    features_y = features_y - np.mean(features_y, 0, keepdims=True)
+    features_x = features_x - np.mean(features_x, axis=0, keepdims=True)
+    features_y = features_y - np.mean(features_y, axis=0, keepdims=True)
 
     dot_product_similarity = np.linalg.norm(features_x.T.dot(features_y)) ** 2
     normalization_x = np.linalg.norm(features_x.T.dot(features_x))

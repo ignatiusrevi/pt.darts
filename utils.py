@@ -112,3 +112,9 @@ def save_checkpoint(state, ckpt_dir, is_best=False):
     if is_best:
         best_filename = os.path.join(ckpt_dir, 'best.pth.tar')
         shutil.copyfile(filename, best_filename) # overwrite if best
+
+def save(model, model_path):
+    torch.save(model.state_dict(), model_path)
+
+def load(model, model_path):
+    model.load_state_dict(torch.load(model_path))
