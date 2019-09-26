@@ -12,15 +12,15 @@ from models import ops
 Genotype = namedtuple('Genotype', 'normal normal_concat reduce reduce_concat')
 
 PRIMITIVES = [
-    'avg_pool_3x3',
-    'max_pool_3x3',
-    'skip_connect', # identity
-    'sep_conv_3x3',
-    'sep_conv_5x5',
-    'dil_conv_3x3',
-    'dil_conv_5x5',
+    'avg_pool_3x3', # 0
+    'max_pool_3x3', # 1
+    'skip_connect', # 2: Identity
+    'sep_conv_3x3', # 3
+    'sep_conv_5x5', # 4
+    'dil_conv_3x3', # 5
+    'dil_conv_5x5', # 6
     # 'res_blck_3x3',
-    'none'
+    'none' # 7
 ]
 
 
