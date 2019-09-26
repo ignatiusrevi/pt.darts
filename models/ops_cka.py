@@ -251,7 +251,7 @@ class MixedOpCKA(nn.Module):
             x: input
             weights: weight for each operation
         """
-        # random_shuffle(x)
+        random_shuffle(x)
         
         channel = x.shape[1]
         x_temp_1 = x[ :, :channel//self.C_reduction, :, :]
@@ -271,7 +271,7 @@ class MixedOpCKA(nn.Module):
             result = torch.cat([sum_temp_1, x_temp_2], dim=1)
         else:
             result = torch.cat([sum_temp_1, self.max_pool(x_temp_2)], dim=1)
-        result = channel_shuffle(result, self.C_reduction)
+        # result = channel_shuffle(result, self.C_reduction)
 
         return result
 
