@@ -133,8 +133,6 @@ def main():
                 for j in range(n_ops):
                     supernet.net.cells[i].dag[3][k]._ops[j] = ops.Zero(stride=stride)
 
-    set_trace()
-
     # Test Image Batch
     img = torch.cat([train_data[i][0].view(-1, 3, input_size, input_size) for i in range(64)], dim=0)
     img = img.to(device, non_blocking=True)
