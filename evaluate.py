@@ -175,13 +175,13 @@ def main():
             lcka_arr_debiased[i] = lcka_tmp_debiased
             cca_arr[i]    = cca_tmp
 
-    print('Linear CKA: ',          lcka_arr)
+    print('Linear CKA: ', lcka_arr)
     print()
-    print('RBF CKA: ',             rbfcka_arr)
+    print('RBF CKA: ',    rbfcka_arr)
     print()
-    print('Linear CKA Debiased: ', lcka_arr_debiased)
+    print('LinearCKAD: ', lcka_arr_debiased)
     print()
-    print('CCA: ',                 cca_arr)
+    print('CCA: ',        cca_arr)
 
     '''
     LinearCKAD: Linear CKA Debiased
