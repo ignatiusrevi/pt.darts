@@ -1,5 +1,9 @@
+.vscode
 *.pyc
 *.swp
+*__pycache__
 data
 venv
+
+# Results File
 results
