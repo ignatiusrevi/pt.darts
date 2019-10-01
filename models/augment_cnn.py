@@ -80,6 +80,8 @@ class AugmentCNN(nn.Module):
         self.gap = nn.AdaptiveAvgPool2d(1)
         self.linear = nn.Linear(C_p, n_classes)
 
+        self.outputs = []
+
     def forward(self, x):
         s0 = s1 = self.stem(x)
 
@@ -88,6 +90,7 @@ class AugmentCNN(nn.Module):
             s0, s1 = s1, cell(s0, s1)
             if i == self.aux_pos and self.training:
                 aux_logits = self.aux_head(s1)
+            self.outputs.append(s1)
 
         out = self.gap(s1)
         out = out.view(out.size(0), -1) # flatten

@@ -63,12 +63,15 @@ class SearchCNN(nn.Module):
         self.gap = nn.AdaptiveAvgPool2d(1)
         self.linear = nn.Linear(C_p, n_classes)
 
+        self.outputs = []
+
     def forward(self, x, weights_normal, weights_reduce):
         s0 = s1 = self.stem(x)
 
         for cell in self.cells:
             weights = weights_reduce if cell.reduction else weights_normal
             s0, s1 = s1, cell(s0, s1, weights)
+            self.outputs.append(s1)
 
         out = self.gap(s1)
         out = out.view(out.size(0), -1) # flatten
