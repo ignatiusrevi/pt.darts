@@ -36,6 +36,13 @@ def data_transforms(dataset, cutout_length):
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip()
         ]
+    elif dataset == 'cifar100':
+        MEAN = [0.5071, 0.4865, 0.4409]
+        STD = [0.2673, 0.2564, 0.2762]
+        transf = [
+            transforms.RandomCrop(32, padding=4),
+            transforms.RandomHorizontalFlip()     
+        ]
     elif dataset == 'mnist':
         MEAN = [0.13066051707548254]
         STD = [0.30810780244715075]
