@@ -1,4 +1,7 @@
-# DARTS: Differentiable Architecture Search
+# ST-NAS: Stochastic Targeted-NAS
+
+Widjaja, Ignatius. Built upon the DARTS (SOTA Differentiable Architecture Search).\
+@label: Research Code.
 
 Liu, Hanxiao, Karen Simonyan, and Yiming Yang. "Darts: Differentiable architecture search." arXiv preprint arXiv:1806.09055 (2018). [[arxiv](https://arxiv.org/abs/1806.09055)]
 
@@ -11,41 +14,24 @@ Liu, Hanxiao, Karen Simonyan, and Yiming Yang. "Darts: Differentiable architectu
 - numpy
 - tensorboardX
 
-## Run example
+## Run Example
 
 Adjust the batch size if out of memory (OOM) occurs. It dependes on your gpu memory size and genotype.
 
 - Search
 
 ```shell
-python search.py --name cifar10 --dataset cifar10
+python search.py --name cifar10_test_mixed_fp --dataset cifar10 --gpus 0
 ```
 
 - Augment
 
-```shell
-# genotype from search results
-python augment.py --name cifar10 --dataset cifar10 --genotype "Genotype(
-    normal=[[('sep_conv_3x3', 0), ('dil_conv_5x5', 1)], [('skip_connect', 0), ('dil_conv_3x3', 2)], [('sep_conv_3x3', 1), ('skip_connect', 0)], [('sep_conv_3x3', 1), ('skip_connect', 0)]],
-    normal_concat=range(2, 6),
-    reduce=[[('max_pool_3x3', 0), ('max_pool_3x3', 1)], [('max_pool_3x3', 0), ('skip_connect', 2)], [('skip_connect', 3), ('max_pool_3x3', 0)], [('skip_connect', 2), ('max_pool_3x3', 0)]],
-    reduce_concat=range(2, 6)
-)"
+`conda create -n darts python=3.x`\
+`conda activate darts`
 
-# 08/23 02:36:43 PM | Final best Prec@1 = 97.2800% // cifar10 -> Stochastic targeted weight dropout
-python augment.py --name cifar10 --dataset cifar10 --gpus 3 --genotype "Genotype(
-    normal=[[('sep_conv_3x3', 0), ('sep_conv_5x5', 1)], [('max_pool_3x3', 0), ('skip_connect', 2)], [('max_pool_3x3', 0), ('skip_connect', 2)], [('dil_conv_3x3', 0), ('skip_connect', 1)]], normal_concat=range(2, 6), 
-    reduce=[[('avg_pool_3x3', 0), ('sep_conv_3x3', 1)], [('max_pool_3x3', 0), ('sep_conv_3x3', 1)], [('sep_conv_5x5', 0), ('max_pool_3x3', 1)], [('max_pool_3x3', 1), ('sep_conv_3x3', 0)]], reduce_concat=range(2, 6)
-)"
-
-# // cifar10_td_weight == cifar10_td_fix_not_training_condition -> Stochastic targeted weight dropout
-python augment.py --name cifar10_td_fix_not_training_condition --dataset cifar10 --gpus 1 --genotype "Genotype(
-    normal=[[('max_pool_3x3', 0), ('sep_conv_5x5', 1)], [('max_pool_3x3', 0), ('skip_connect', 2)], [('dil_conv_3x3', 1), ('skip_connect', 2)], [('max_pool_3x3', 1), ('dil_conv_3x3', 0)]], normal_concat=range(2, 6), 
-    reduce=[[('dil_conv_5x5', 0), ('dil_conv_3x3', 1)], [('skip_connect', 0), ('sep_conv_5x5', 1)], [('dil_conv_5x5', 2), ('sep_conv_5x5', 0)], [('avg_pool_3x3', 0), ('dil_conv_3x3', 1)]], reduce_concat=range(2, 6)
-)"
-
-# // cifar10_td_unit -> Stochastic targeted unit dropout
-```
+`conda install pytorch torchvision cudatoolkit=10.0 -c pytorch`\
+`conda install -c conda-forge tensorboardx`\
+`conda install -c conda-forge python-graphviz`
 
 - with docker
 
@@ -99,11 +85,11 @@ The following results were obtained using the default arguments, except for the 
 | ------- | -------------------- | ------------------- |
 | MNIST         | 99.75% | 99.81% |
 | Fashion-MNIST | 99.27% | 99.39% |
-| CIFAR-10       | 97.17% | 97.23% |
+| CIFAR-10      | 97.17% | 97.23% |
 
 97.17%, final validation accuracy in CIFAR-10, is the same number as the paper.
 
-### Found architectures
+### Found Architectures
 
 ```py
 # CIFAR10
@@ -168,7 +154,7 @@ Genotype(
 
 https://github.com/quark0/darts (official implementation)
 
-### Main differences to reference code
+### Main Differences to Reference Code
 
 - Supporting pytorch >= 0.4
 - Supporting multi-gpu
