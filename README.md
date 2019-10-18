@@ -1,7 +1,4 @@
-# ST-NAS: Stochastic Targeted-NAS
-
-Widjaja, Ignatius. Built upon the DARTS (SOTA Differentiable Architecture Search).\
-@label: Research Code.
+# DARTS: Differentiable Architecture Search
 
 Liu, Hanxiao, Karen Simonyan, and Yiming Yang. "Darts: Differentiable architecture search." arXiv preprint arXiv:1806.09055 (2018). [[arxiv](https://arxiv.org/abs/1806.09055)]
 
